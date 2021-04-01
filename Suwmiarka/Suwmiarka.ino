@@ -278,7 +278,7 @@ void loop()
         }
     }
     else {
-        if (key == key_Short || !anoNoSignal || millis() - noSignalTime > 10000UL) {
+        if (key == key_Short || !anoNoSignal || (readMode != rmd_OnDemand && millis() - noSignalTime > 10000UL)) {
             noSignalTime = millis();
             anoNoSignal = 1;
             say("Brak odczytu");
