@@ -18,6 +18,15 @@ z innymi suwmiarkami.
 
 Wtyczka i szczegóły połączenia z suwmiarką - patrz <https://github.com/MGX3D/EspDRO>
 
+Można wydrukować mniejszą wtyczkę z pliku w katalogu connector. Ustawienia druku:
+
+* Materiał - TPU
+* Średnica dyszy - 0.4 mm
+* Wysokość warstwy - 0.1 mm
+* Wysokość pierwszej warstwy - 0.2 mm
+
+Zmniejszona wtyczka pasuje wyłącznie do suwmiarki Vorel!
+
 ## I kilka słów o projekcie
 
 Projekt przeznaczony jest przede wszystkim dla osób niewidomych i słabo widzących,
@@ -55,4 +64,24 @@ Dioda dowolna (niekoniecznie Schottky). Tranzystor dowolny NPN o prądzie przeł
 Kondensator C1 można pominąć, wartość nie jest krytyczna, należy dobrać C1 i R2 tak, aby
 uzyskać maksymalnie zrozumiałą mowę.
 Zamiast głośnika 8Ω i rezystora R2 lepiej zastosować wysokoomowy głośnik (np. 60Ω).
+
+Jeśli mowa jest za cicha, można zwiększyć CONTRAST_LEVEL na początku pliku audio.cpp - uzyteczne
+wartości to od 0.1 do 1.0. Zwiększanie wartości powoduje zwiększenie głośności kosztem wzrostu
+zniekształceń (bez zwiększania amplitudy).
+
+Możliwe jest również użycie dowolnego smartfona lub tabletu z systemem Android jako syntezatora mowy.
+W tym celu na urządzeniu z Androidem należy zainstalować aplikację Suwspiker.apk (z katalogu Android).
+Aby uruchomić bluetooth w suwmiarce, należy podczas włączania trzymać wciśnięty przycisk. Po pierwszym
+uruchomieniu należy sparować suwmiarkę ze smartfonem!
+
+Niestety, odczyt za pomocą smartfona ma odczuwalne opóźnienie.
+
+Jeśli nie będziemy używać bluetooth, można w pliku Suwmiarka.ino zakomentować linię:
+```C++
+#define ENABLE_BT 1
+```
+Trzeba pamiętać, że włączenie bluetooth spowoduje szybsze zużycie akumulatora!
+
+
+
 

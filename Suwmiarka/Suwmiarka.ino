@@ -1,7 +1,21 @@
+
 #include "Lektor2.h"
 #include <driver/adc.h>
 #include <freertos/ringbuf.h>
 #include <WiFi.h>
+
+// Zakomentuj linię poniżej jeśli nie używasz bluetooth
+#define ENABLE_BT 1
+
+// Tu możesz wstawić nazwę, pod którą będzie widziana suwmiarka
+// w otoczeniu bluetooth
+#define BT_NAME "ESP32Suwmiarka"
+
+#ifdef ENABLE_BT
+#include "BluetoothSerial.h"
+BluetoothSerial SerialBT;
+bool BTActive = false;
+#endif
 
 #define AUDIO_PIN 14
 #define BUTTON_PIN 32
@@ -123,21 +137,61 @@ void speechThread(void *v)
 }
 
 uint8_t speaking;
-void stopAudio(bool speech = false)
+void stopAudio(void)
 {
     audio.stop();
     while(audioRunning) delay(10);
 }
 
-void say(const char *text)
+#ifdef ENABLE_BT
+char btControl = 'a';
+uint8_t btSpeaking;
+uint32_t btSent;
+uint8_t btClient=0;
+void nextBT(void)
 {
-    stopAudio(true);
+    if (btControl < 'a') {
+        btControl='a';
+    }
+    else if (btControl >= 'z') {
+        btControl='a';
+    }
+    else {
+        btControl++;
+    }
+    //printf("Control char = %c\n", btControl);
+}
+void stopBTSpeaking(void)
+{
+    if (BTActive && SerialBT.hasClient() && btSpeaking) {
+        nextBT();
+        SerialBT.write(btControl);
+        SerialBT.println("");
+        
+    }
+}
+#endif
+
+
+void say(const char *text, bool local=false)
+{
+    stopAudio();
+#ifdef ENABLE_BT
+    if (!local && BTActive && SerialBT.hasClient()) {
+        nextBT();
+        SerialBT.write(btControl);
+        SerialBT.println(text);
+        speaking = 1;
+        btSpeaking = 1;
+        btSent = millis();
+        return;
+    }
+#endif
     struct spikerCmd rbc;
     rbc.cmd = 1;
     strcpy(rbc.text, text);
     xRingbufferSend(SpeechRB, &rbc, sizeof(rbc), 0);
     speaking=1;
-
 }
 
 enum {
@@ -158,7 +212,6 @@ void setup(void)
 {
     Serial.begin(115200);
     WiFi.mode(WIFI_MODE_NULL);
-    
     pinMode(dataPin, INPUT);     
     pinMode(clockPin, INPUT);
     pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -171,9 +224,20 @@ void setup(void)
     SpeechRB = xRingbufferCreateNoSplit(256,4);
     xTaskCreatePinnedToCore(speechThread,"speech",10000,NULL,3,&speechHandle,0);
     delay(10);
-    say("Gotowy do pracy. odczyt zmian");
-    speaking=1;
     lastKey = digitalRead(BUTTON_PIN);
+#ifdef ENABLE_BT
+    
+    if (!lastKey) {
+        SerialBT.begin(BT_NAME);
+        while(!(lastKey = digitalRead(BUTTON_PIN))) delay(10);
+        say("Połączenie blutuf aktywne", true);
+        BTActive = true;
+    }
+    else
+#endif    
+    
+    say("Gotowy do pracy");
+    speaking=1;
     keyTimer = millis();
 }
 
@@ -212,7 +276,10 @@ void loop()
     uint8_t inch,neg,key;
     key=getKey();
     if (key) {
-        stopAudio(true);
+        stopAudio();
+#if BT_ENABLE
+        stopBTSpeaking();
+#endif
         if (key == key_Long) {
             readMode = (readMode + 1) % 3;
             anounceRM();
@@ -224,16 +291,48 @@ void loop()
             lastSpoken = millis();
         }
     }
-    if (audioRunning) {
+#ifdef ENABLE_BT
+    if (btSpeaking && BTActive) {
+        char btrcv;
+        while (SerialBT.available()) {
+            btrcv = SerialBT.read();
+            //printf("BT received %c\n", btrcv);
+            if (btrcv == btControl) {
+                speaking = 0;
+                btSpeaking=0;
+            }
+        }
+        if (btSpeaking && millis() - btSent > 3000UL) {
+            btSpeaking = 0;
+        }
+        if (!btSpeaking) {
+            //printf("BT Speaking finished\n");
+            lastSpoken = millis();
+        }
+    }
+    else {
+#endif
+     if (audioRunning) {
         speaking=1;
         delay(10);
         return;
     }
+        
     else if (speaking) {
         speaking=0;
         lastSpoken = millis();
     }
-    
+#ifdef ENABLE_BT
+    }
+#endif 
+    if (!digitalRead(BUTTON_PIN)) return;
+#ifdef ENABLE_BT
+    if (!btClient && BTActive && SerialBT.hasClient()) {
+        btClient = 1;
+        say("Połączono z suwmiarką");
+        return;
+    }
+#endif    
     long packet = getPacket();
     if (packet >= 0) {
         anoNoSignal = 0;
@@ -249,7 +348,7 @@ void loop()
                     vchanged = 1;
                     lastPacket = packet;
                 }
-                else if (vchanged && millis() - lastSpoken > 1000UL) {
+                else if (!speaking && vchanged && millis() - lastSpoken > 1000UL) {
                     vchanged = 0;
                     speak = 1;
                 }
@@ -258,7 +357,7 @@ void loop()
         else if (readMode == rmd_OnDemand) {
             if (key == key_Short) speak = 1;
         }
-        else if (millis() - lastSpoken > 1000UL) speak = 1;
+        else if (!speaking && millis() - lastSpoken > 1000UL) speak = 1;
         
         if (speak) {
             char buf[32],*c=buf;
