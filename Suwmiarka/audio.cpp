@@ -4,6 +4,9 @@
 
 #include "audio.h"
 
+// usable values from 0.1 to 1.0
+#define CONTRAST_LEVEL 0.1
+
 /* simplified code from ESP8266Audio library */
 
 void AudioOut::DeltaSigma(int16_t sample, uint32_t dsBuff[8])
@@ -173,7 +176,7 @@ AudioOut::AudioOut(int pin, int port, int dma_buf_count, int use_apll)
     float_size=32768.0;
     float_gain_in=4.2;
     float_gain=float_gain_in / float_size;
-    float_contrast = 0.1;
+    float_contrast = CONTRAST_LEVEL;
     use_contrast = true;
     if (!i2sOn) {
         if (use_apll == APLL_AUTO) {
