@@ -172,7 +172,7 @@ AudioOut::AudioOut(int pin, int port, int dma_buf_count, int use_apll)
     i2sOn = false;
     audioStop=false;
     dma_buf_count = dma_buf_count;
-    oversample=32;
+    oversample=64;
     float_size=32768.0;
     float_gain_in=4.2;
     float_gain=float_gain_in / float_size;
@@ -190,11 +190,11 @@ AudioOut::AudioOut(int pin, int port, int dma_buf_count, int use_apll)
         }
 
         i2s_mode_t mode = (i2s_mode_t)(I2S_MODE_MASTER | I2S_MODE_TX);
-        i2s_comm_format_t comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
-
+        //i2s_comm_format_t comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_I2S | I2S_COMM_FORMAT_I2S_MSB);
+        i2s_comm_format_t comm_fmt = (i2s_comm_format_t)(I2S_COMM_FORMAT_STAND_I2S);
         i2s_config_t i2s_config_dac = {
             .mode = mode,
-            .sample_rate = 22050, //44100,
+            .sample_rate = 44100,
             .bits_per_sample = I2S_BITS_PER_SAMPLE_16BIT,
             .channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
             .communication_format = comm_fmt,
@@ -203,7 +203,7 @@ AudioOut::AudioOut(int pin, int port, int dma_buf_count, int use_apll)
             .dma_buf_len = 64,
             .use_apll = use_apll // Use audio PLL
         };
-        printf("+%d %p\n", portNo, &i2s_config_dac);
+        //printf("+%d %p\n", portNo, &i2s_config_dac);
         if (i2s_driver_install((i2s_port_t)portNo, &i2s_config_dac, 0, NULL) != ESP_OK) {
             printf("ERROR: Unable to install I2S drives\n");
         }
@@ -215,7 +215,7 @@ AudioOut::AudioOut(int pin, int port, int dma_buf_count, int use_apll)
 AudioOut::~AudioOut()
 {
     if (i2sOn) {
-        printf("UNINSTALL I2S\n");
+        //printf("UNINSTALL I2S\n");
         i2s_driver_uninstall((i2s_port_t)portNo); //stop & destroy i2s driver
     }
     i2sOn = false;

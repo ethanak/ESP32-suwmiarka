@@ -56,14 +56,15 @@ Program może pracować w trzech trybach:
 Przełączanie odbywa się poprzez dłuższe (powyżej pół sekundy) wciśnięcie klawisza. Tryb jest anonsowany
 po każdej zmianie.
 
+Podwójne wciśnięcie klawisza odczytuje stan baterii.
+
 Proponowany schemat połączeń:
 
 ![schemat](./suwmiarka.png "Schemat układu")
 
-Dioda dowolna (niekoniecznie Schottky). Tranzystor dowolny NPN o prądzie przełączania min. 0.2A.
-Kondensator C1 można pominąć, wartość nie jest krytyczna, należy dobrać C1 i R2 tak, aby
-uzyskać maksymalnie zrozumiałą mowę.
-Zamiast głośnika 8Ω i rezystora R2 lepiej zastosować wysokoomowy głośnik (np. 60Ω).
+Tranzystor dowolny NPN o prądzie przełączania min. 0.2A. W oryginalnym urządzeniu
+użyłem BC817.
+Zamiast głośnika 8Ω i rezystora R2 można zastosować wysokoomowy głośnik (np. 60Ω).
 
 Jeśli mowa jest za cicha, można zwiększyć CONTRAST_LEVEL na początku pliku audio.cpp - uzyteczne
 wartości to od 0.1 do 1.0. Zwiększanie wartości powoduje zwiększenie głośności kosztem wzrostu
@@ -74,14 +75,12 @@ W tym celu na urządzeniu z Androidem należy zainstalować aplikację Suwspiker
 Aby uruchomić bluetooth w suwmiarce, należy podczas włączania trzymać wciśnięty przycisk. Po pierwszym
 uruchomieniu należy sparować suwmiarkę ze smartfonem!
 
-Niestety, odczyt za pomocą smartfona ma odczuwalne opóźnienie.
+Większość parametrów dodatkowych można ustawić łącząc się za pomocą kabla USB
+i dowolnego terminala (prędkość 115200). Polecenie ```help``` spowoduje wypisanie
+wszystkich poleceń, polecenie ```help <polecenie>``` spowoduje wypisanie
+pomocy dla konkretnego polecenia. Np.
 
-Jeśli nie będziemy używać bluetooth, można w pliku Suwmiarka.ino zakomentować linię:
-```C++
-#define ENABLE_BT 1
-```
-Trzeba pamiętać, że włączenie bluetooth spowoduje szybsze zużycie akumulatora!
+```help synth```
 
-
-
+wypisze pomoc dla polecenia ```synth``` (podłączenie zewnętrznego syntezatora)
 

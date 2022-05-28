@@ -1,7 +1,7 @@
 #include "lektor_private.h"
 #include "Lektor2.h"
 #include "audio.h"
-
+#include "prefs.h"
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -10,11 +10,14 @@ volatile bool isSpeaking;
 
 Lektor2::Lektor2(void)
 {
-    mSec_per_frame = 8.0;
+    //mSec_per_frame = 3.5;
+    setTempo(pfs_tempo);
+    //printf("\nPFS %f\n", mSec_per_frame);
     robotic = 0;
     g_samrate = 11050;
     g_f0_flutter = 0;
-    g_nspfr = (g_samrate * mSec_per_frame) / 1000;
+    setTempo(pfs_tempo);
+    //g_nspfr = (g_samrate * mSec_per_frame) / 1000;
     frequency = 100;
     g_nfcascade = 6;
     mouth_callback = NULL;
@@ -25,6 +28,15 @@ Lektor2::Lektor2(void)
 #endif
 }
 
+int Lektor2::setTempo(int s)
+{
+    if (s < 0 || s > 15) return -1;
+    ctempo = s;
+    mSec_per_frame = 10.0 - 0.5*s;
+    g_nspfr = (g_samrate * mSec_per_frame) / 1000;
+
+    return 0;
+}
 int Lektor2::setSpeed(float s)
 {
     if (s < -1.0 || s > 1.0) return LEKTOR_ERROR_ILLEGAL;
@@ -75,6 +87,8 @@ int Lektor2::say_buffer(void)
     rc = toISO2(buffer, sizeof(buffer));
     if (rc) return rc;
     strp = buffer;
+    setTempo(pfs_tempo);
+    //printf("PMS %f\n", mSec_per_frame); 
     g_nspfr = (g_samrate * mSec_per_frame) / 1000;
     if (audioModule) audioModule->init_audio();
     else return LEKTOR_ERROR_NOT_COMPLETE;

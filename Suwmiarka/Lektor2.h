@@ -68,6 +68,8 @@ class Lektor2
         Lektor2(void);
         int say(const char *str);
         int setSpeed(float s);
+        int setTempo(int s);
+        int getTempo();
         int setAudioMode(int n);
         int setRobotic(int n);
         int setFrequency(int n);
@@ -185,6 +187,7 @@ class Lektor2
         long g_samrate;
         long g_nspfr;
         int g_nfcascade;
+        int ctempo;
         // internals
         int time_count;
         int warnsw;                    /* JPI added for f0 flutter */
