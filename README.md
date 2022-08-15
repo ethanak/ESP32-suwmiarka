@@ -84,3 +84,4 @@ pomocy dla konkretnego polecenia. Np.
 
 wypisze pomoc dla polecenia ```synth``` (podłączenie zewnętrznego syntezatora)
 
+Zdjęcia i film z użycia na forum Forbot.pl: <https://forbot.pl/forum/topic/19875-gadajaca-suwmiarka/>
